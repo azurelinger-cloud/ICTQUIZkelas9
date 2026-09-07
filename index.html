@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif ICT - Konsep Manajemen Proyek</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .selected-match {
+            outline: 3px solid #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold">Kuis ICT Grade 9</h1>
+                <p class="text-xs text-indigo-200">Bab 3: Konsep Manajemen Proyek</p>
+            </div>
+            <div id="quiz-progress-badge" class="hidden bg-indigo-800 text-indigo-100 text-sm font-semibold px-3 py-1 rounded-full border border-indigo-500">
+                Soal <span id="current-q-num">1</span> dari 40
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-grow flex flex-col justify-center">
+
+        <!-- START SCREEN -->
+        <div id="start-screen" class="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center border border-slate-200">
+            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                📋
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Evaluasi Manajemen Proyek</h2>
+            <p class="text-slate-600 mb-6 max-w-lg mx-auto text-sm md:text-base">
+                Kuis ini terdiri dari <b>40 Soal</b> (30 Pilihan Ganda, 5 Benar/Salah, dan 5 Mencocokkan Pasangan). Kuis ini bersifat sekali pengerjaan langsung dan tidak dapat diulang atau diganti jawabannya setelah dipilih.
+            </p>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6 text-left max-w-md mx-auto text-xs md:text-sm text-slate-600 space-y-2">
+                <div class="flex items-center font-semibold text-slate-700 mb-1">
+                    <span class="mr-2">⚠️</span> Aturan Pengerjaan:
+                </div>
+                <p>• Jawaban yang diklik akan <b>langsung tersimpan</b> dan berpindah otomatis.</p>
+                <p>• Tidak ada tombol "Kembali" atau memperbaiki jawaban.</p>
+                <p>• Skor akhir dan total jawaban benar akan tampil di sesi akhir (Skala 100).</p>
+            </div>
+
+            <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition duration-200 transform hover:-translate-y-0.5">
+                Mulai Kerjakan Kuis Now
+            </button>
+        </div>
+
+        <!-- QUIZ CONTAINER -->
+        <div id="quiz-container" class="hidden bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-2">
+                <div id="progress-bar" class="bg-indigo-600 h-2 transition-all duration-300" style="width: 0%;"></div>
+            </div>
+
+            <div class="p-6 md:p-8 flex-grow flex flex-col">
+                <!-- Question Type Indicator -->
+                <div class="mb-2 flex items-center">
+                    <span id="question-type-badge" class="text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                        Pilihan Ganda
+                    </span>
+                </div>
+
+                <!-- Question Text -->
+                <h3 id="question-text" class="text-lg md:text-xl font-bold text-slate-800 mb-6">
+                    Pertanyaan akan muncul di sini...
+                </h3>
+
+                <!-- MCQ & T/F Option Area -->
+                <div id="options-container" class="space-y-3 mb-6">
+                    <!-- Dynamic Buttons -->
+                </div>
+
+                <!-- MATCHING TYPE AREA -->
+                <div id="matching-container" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="space-y-2">
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Item / Istilah</p>
+                        <div id="matching-left" class="space-y-2"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Pasangan / Definisi</p>
+                        <div id="matching-right" class="space-y-2"></div>
+                    </div>
+                </div>
+                
+                <div id="matching-submit-area" class="hidden mt-4 text-right">
+                    <button onclick="submitMatchingAnswer()" id="matching-submit-btn" disabled class="bg-slate-300 text-slate-500 font-semibold px-6 py-2 rounded-lg cursor-not-allowed transition">
+                        Konfirmasi Semua Pasangan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS SCREEN -->
+        <div id="result-screen" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8 text-center border border-slate-200">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 text-3xl font-extrabold" id="score-badge-color">
+                <span id="final-score-100">0</span>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-slate-800 mb-1">Kuis Selesai!</h2>
+            <p class="text-slate-500 text-sm mb-6">Berikut adalah rangkuman hasil pengerjaan Anda.</p>
+
+            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8">
+                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-lg">
+                    <p class="text-xs text-emerald-600 font-medium uppercase">Jawaban Benar</p>
+                    <p class="text-2xl font-bold text-emerald-700" id="total-correct">0 / 40</p>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
+                    <p class="text-xs text-indigo-600 font-medium uppercase">Nilai Akhir (Skala 100)</p>
+                    <p class="text-2xl font-bold text-indigo-700" id="final-score-val">0</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs md:text-sm text-amber-800 max-w-md mx-auto mb-6">
+                🔒 Peringatan: Jawaban telah dikunci. Hasil ini dikirim sebagai penilaian akhir.
+            </div>
+
+            <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-800 text-white font-medium px-6 py-2.5 rounded-lg shadow transition">
+                Tutup Sesi
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400">
+        &copy; ICT Secondary 3 • Chapter 3: Project Management Concepts
+    </footer>
+
+    <!-- QUIZ SCRIPT & DATA -->
+    <script>
+        const questions = [
+            // 30 PILIHAN GANDA (1-30)
+            {
+                type: "mcq",
+                q: "Apa definisi utama dari sebuah Proyek (Project) dalam manajemen ICT?",
+                options: [
+                    "Upaya berulang tanpa batas waktu untuk menjaga rutinitas kantor.",
+                    "Tugas harian rutin yang dilakukan secara terus menerus.",
+                    "Upaya sementara dengan tanggal mulai dan selesai untuk menghasilkan produk unik.",
+                    "Prosedur tetap untuk pengetikan laporan operasional sekolah."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Berikut ini yang merupakan contoh dari Operasi (Operations) adalah...",
+                options: [
+                    "Pembuatan Aplikasi Mobile Sekolah yang baru.",
+                    "Pengembangan situs web sekolah secara menyeluruh.",
+                    "Pengetikan laporan administrasi harian sekolah.",
+                    "Penyelenggaraan pameran produk teknologi sekolah tahunan."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Manakah perbedaan mendasar antara Proyek dan Operasi?",
+                options: [
+                    "Proyek berulang terus, sedangkan Operasi memiliki akhir yang pasti.",
+                    "Proyek mendorong perubahan/inovasi, sedangkan Operasi menjaga fungsi rutin.",
+                    "Operasi menghasilkan output unik, sedangkan Proyek menghasilkan produk rutin.",
+                    "Proyek tidak membutuhkan alokasi sumber daya manusia."
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Tiga karakteristik utama dari suatu proyek adalah...",
+                options: [
+                    "Permanen, Tanpa Tujuan, Berdiri Sendiri.",
+                    "Sementara (Temporary), Memiliki Tujuan Spesifik, Kerja Sama Tim.",
+                    "Tanpa Batasan Waktu, Menggunakan Individu, Hasil Rutin.",
+                    "Fleksibel Tanpa Target, Bertahap, Tanpa Anggaran."
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Apa tahapan pertama dalam Siklus Hidup Manajemen Proyek (Project Life Cycle)?",
+                options: [
+                    "Planning (Perencanaan)",
+                    "Execution (Pelaksanaan)",
+                    "Initiation (Inisiasi)",
+                    "Closing (Penutupan)"
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Pada tahap Planning (Perencanaan), aktivitas utama yang dilakukan adalah...",
+                options: [
+                    "Mengevaluasi hasil akhir dan presentasi produk.",
+                    "Membuat WBS, jadwal, alokasi tugas, dan rencana anggaran.",
+                    "Menentukan ruang lingkup awal dan membentuk tim proyek.",
+                    "Menjalankan tugas harian dan memperbarui progress mingguan."
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Penyampaian pitch final, evaluasi produk akhir, dan penyerahan hasil proyek dilakukan pada tahap...",
+                options: [
+                    "Closing",
+                    "Execution",
+                    "Initiation",
+                    "Planning"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Apa kepanjangan dari WBS dalam manajemen proyek?",
+                options: [
+                    "Work Breakdown Structure",
+                    "Work Base Schedule",
+                    "World Business System",
+                    "Work Task System"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Metode pemecahan proyek besar menjadi sub-tugas yang lebih kecil dan dapat dikelola disebut...",
+                options: [
+                    "Gantt Charting",
+                    "Work Breakdown Structure (WBS)",
+                    "Triple Constraints",
+                    "Retrospective Evaluation"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Jika Anda membuat WBS untuk proyek 'Situs Web Sekolah', manakah urutan sub-tugas yang paling tepat?",
+                options: [
+                    "UI Design → Logo Creation → HTML Coding → Content Writing",
+                    "HTML Coding → UI Design → Presentasi → Evaluasi",
+                    "Content Writing → Presentasi → Logo Creation → Maintenance",
+                    "Evaluasi → UI Design → Testing → Penutupan"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Salah satu manfaat utama dari pembuatan WBS adalah...",
+                options: [
+                    "Menghilangkan kebutuhan akan anggota tim.",
+                    "Melakukan estimasi waktu dan alat digital secara presisi.",
+                    "Menghapus jadwal deadline proyek.",
+                    "Menghindari penggunaan software manajemen."
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Grafik batang horizontal yang menampilkan jadwal, urutan tugas, dan durasi waktu dinamakan...",
+                options: [
+                    "Trello Board",
+                    "Gantt Chart",
+                    "RACI Matrix",
+                    "Pie Chart"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Alat visualisasi yang menentukan peran/tanggung jawab individu (Responsibility) terhadap tugas adalah...",
+                options: [
+                    "RACI Matrix",
+                    "WBS Graph",
+                    "Kanban Column",
+                    "Gantt Chart"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Pada aliran kerja Digital Kanban (seperti Trello/Notion), kategori tugas 'Backlog yang siap dikerjakan' berada di kolom...",
+                options: [
+                    "In Progress",
+                    "Done",
+                    "To Do",
+                    "Review"
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Kolom Kanban yang berisi pekerjaan aktif yang sedang diproses oleh anggota tim adalah...",
+                options: [
+                    "To Do",
+                    "In Progress",
+                    "Done",
+                    "Archive"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Peran tim yang bertanggung jawab mengoordinasikan tim, memantau timeline, dan memimpin rapat adalah...",
+                options: [
+                    "Designer",
+                    "Project Manager",
+                    "Content Specialist",
+                    "Presenter / Tester"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Seorang Content Specialist dalam tim proyek bertanggung jawab untuk...",
+                options: [
+                    "Membuat tata letak visual dan slide presentasi.",
+                    "Menyampaikan pitch akhir dan menguji fungsi sistem.",
+                    "Riset materi, menulis teks, dan memverifikasi akurasi data.",
+                    "Mengatur budget dan memimpin rapat tim."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Keterampilan utama yang wajib dimiliki oleh seorang Presenter / Tester adalah...",
+                options: [
+                    "Graphic Tools & Kreativitas",
+                    "Public Speaking & QA (Quality Assurance)",
+                    "Kepemimpinan & Manajemen Konflik",
+                    "Coding HTML & CSS"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Tiga Batasan Utama Proyek (The Triple Constraints) terdiri dari...",
+                options: [
+                    "Scope, Time, Resources",
+                    "Money, Power, Time",
+                    "Quality, People, Marketing",
+                    "Design, Coding, Testing"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Menurut prinsip Triple Constraints, apa yang terjadi jika salah satu faktor bergeser/berubah?",
+                options: [
+                    "Tidak ada efek apapun pada proyek.",
+                    "Dua faktor lainnya otomatis hilang.",
+                    "Dampak langsung terhadap dua faktor yang tersisa.",
+                    "Proyek otomatis dibatalkan."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Faktor Triple Constraints yang mencakup semua deliverable, fitur, dan tugas spesifik yang harus diselesaikan adalah...",
+                options: [
+                    "Time",
+                    "Scope",
+                    "Resources",
+                    "Budget"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Faktor 'Resources' dalam Triple Constraints mencakup hal-hal berikut, KECUALI...",
+                options: [
+                    "Perangkat lunak (software) dan hardware.",
+                    "Ukuran tim dan anggaran.",
+                    "Tenggat waktu (deadline) dan milestone.",
+                    "Peralatan digital yang tersedia."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Manakah strategi Mitigasi Risiko (Risk Mitigation) yang tepat untuk mencegah kehilangan data proyek?",
+                options: [
+                    "Menyimpan file hanya di satu komputer lokal.",
+                    "Melakukan pencadangan otomatis di cloud (misal: Google Drive).",
+                    "Mengabaikan bug software hingga akhir proyek.",
+                    "Menghentikan proyek saat ada anggota yang absen."
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Apa fungsi dari Evaluasi Retrospektif (Retrospective Evaluation)?",
+                options: [
+                    "Menentukan anggaran awal proyek.",
+                    "Membuat logo proyek baru.",
+                    "Mencermati hal yang berhasil dan mencari solusi perbaikan untuk proyek mendatang.",
+                    "Membagi tugas tugas harian secara acak."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Dalam rubrik penilaian proyek kelompok, Kriteria 'Product Quality' memiliki bobot sebesar...",
+                options: [
+                    "25%",
+                    "35%",
+                    "20%",
+                    "10%"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Indikator keberhasilan untuk kriteria 'Planning & WBS' (bobot 25%) adalah...",
+                options: [
+                    "Partisipasi aktif dan pembaruan Trello berkala.",
+                    "Penyampaian presentasi yang lancar.",
+                    "Jadwal yang terorganisir, WBS detail, dan pembagian peran yang adil.",
+                    "Kerapihan desain visual dan fungsionalitas teknis."
+                ],
+                answer: 2
+            },
+            {
+                type: "mcq",
+                q: "Jumlah anggota yang disarankan dalam pembentukan kelompok tugas proyek ICT ini adalah...",
+                options: [
+                    "1–2 siswa",
+                    "3–4 siswa",
+                    "6–8 siswa",
+                    " Seluruh kelas dalam 1 kelompok"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Berapa lama durasi jadwal Gantt chart yang harus dibuat dalam tugas proyek kelompok ICT?",
+                options: [
+                    "1 Minggu",
+                    "2 Minggu",
+                    "1 Bulan",
+                    "1 Semester"
+                ],
+                answer: 1
+            },
+            {
+                type: "mcq",
+                q: "Aplikasi digital yang direkomendasikan pada slide untuk melacak papan Kanban Agile secara real-time adalah...",
+                options: [
+                    "Trello & Notion",
+                    "Microsoft Word & Excel",
+                    "Adobe Photoshop & Illustrator",
+                    "Google Forms & Quizizz"
+                ],
+                answer: 0
+            },
+            {
+                type: "mcq",
+                q: "Apa dampak dari keterlibatan anggota yang tidak seimbang dalam pembagian peran WBS?",
+                options: [
+                    "Proyek menjadi lebih cepat selesai.",
+                    "Meningkatkan kualitas presentasi.",
+                    "Terjadinya tumpang tindih tugas dan kebingungan tanggung jawab.",
+                    "Semua anggota mendapatkan nilai sempurna."
+                ],
+                answer: 2
+            },
+
+            // 5 TRUE / FALSE (31-35)
+            {
+                type: "tf",
+                q: "Benar atau Salah: Proyek adalah upaya berkelanjutan tanpa batas waktu yang dilakukan untuk menjaga fungsi rutin harian.",
+                options: ["Benar", "Salah"],
+                answer: 1 // Salah (Operations)
+            },
+            {
+                type: "tf",
+                q: "Benar atau Salah: Work Breakdown Structure (WBS) membantu memberikan kejelasan akuntabilitas sehingga mencegah tumpang tindih tugas.",
+                options: ["Benar", "Salah"],
+                answer: 0 // Benar
+            },
+            {
+                type: "tf",
+                q: "Benar atau Salah: Kolom 'Done' pada papan Kanban diisi oleh daftar tugas backlog yang baru siap untuk dikerjakan.",
+                options: ["Benar", "Salah"],
+                answer: 1 // Salah (To Do = backlog)
+            },
+            {
+                type: "tf",
+                q: "Benar atau Salah: Perubahan pada salah satu elemen Triple Constraints (Scope, Time, Resources) akan berdampak langsung pada dua elemen lainnya.",
+                options: ["Benar", "Salah"],
+                answer: 0 // Benar
+            },
+            {
+                type: "tf",
+                q: "Benar atau Salah: Melatih silang peran tim (cross-train team roles) adalah salah satu bagian dari rencana mitigasi risiko proyek.",
+                options: ["Benar", "Salah"],
+                answer: 0 // Benar
+            },
+
+            // 5 MATCHING QUESTIONS (36-40)
+            {
+                type: "matching",
+                q: "Jodohkan Peran Tim berikut dengan Tanggung Jawab Utamanya yang Tepat:",
+                left: [
+                    { id: "p1", text: "Project Manager" },
+                    { id: "p2", text: "Designer" },
+                    { id: "p3", text: "Content Specialist" },
+                    { id: "p4", text: "Presenter / Tester" }
+                ],
+                right: [
+                    { id: "m3", text: "Riset materi, menulis teks, memverifikasi data" },
+                    { id: "m1", text: "Koordinasi tim, pantau timeline, pimpin rapat" },
+                    { id: "m4", text: "Uji fungsi sistem dan sampaikan pitch final" },
+                    { id: "m2", text: "Buat tata letak visual dan slide presentasi" }
+                ],
+                // Mapping correct left_id -> right_id
+                correctMap: {
+                    "p1": "m1",
+                    "p2": "m2",
+                    "p3": "m3",
+                    "p4": "m4"
+                }
+            },
+            {
+                type: "matching",
+                q: "Jodohkan Tahapan Lifecycle Proyek dengan Aktivitas Utamanya:",
+                left: [
+                    { id: "p1", text: "Initiation" },
+                    { id: "p2", text: "Planning" },
+                    { id: "p3", text: "Execution" },
+                    { id: "p4", text: "Closing" }
+                ],
+                right: [
+                    { id: "m2", text: "Buat WBS, jadwal Gantt Chart, dan alokasi tugas" },
+                    { id: "m4", text: "Evaluasi hasil, presentasi, dan serahkan deliverable" },
+                    { id: "m1", text: "Tentukan scope awal, tujuan utama, dan bentuk tim" },
+                    { id: "m3", text: "Lakukan tugas, kelola tim, dan pantau progress" }
+                ],
+                correctMap: {
+                    "p1": "m1",
+                    "p2": "m2",
+                    "p3": "m3",
+                    "p4": "m4"
+                }
+            },
+            {
+                type: "matching",
+                q: "Jodohkan Elemen Triple Constraints dengan Penjelasannya:",
+                left: [
+                    { id: "p1", text: "Scope" },
+                    { id: "p2", text: "Time" },
+                    { id: "p3", text: "Resources" }
+                ],
+                right: [
+                    { id: "m3", text: "Software, hardware, anggaran, dan jumlah anggota tim" },
+                    { id: "m1", text: "Semua fitur, deliverable, dan tugas yang harus diselesaikan" },
+                    { id: "m2", text: "Tenggat waktu ketat dan milestone yang harus dipenuhi" }
+                ],
+                correctMap: {
+                    "p1": "m1",
+                    "p2": "m2",
+                    "p3": "m3"
+                }
+            },
+            {
+                type: "matching",
+                q: "Jodohkan Kolom Kanban Trello dengan Status Pengerjaan Tugas:",
+                left: [
+                    { id: "p1", text: "To Do" },
+                    { id: "p2", text: "In Progress" },
+                    { id: "p3", text: "Done" }
+                ],
+                right: [
+                    { id: "m2", text: "Pekerjaan aktif yang sedang dikerjakan saat ini" },
+                    { id: "m3", text: "Hasil kerja yang selesai penuh dan diverifikasi" },
+                    { id: "m1", text: "Daftar backlog tugas yang siap untuk dikerjakan" }
+                ],
+                correctMap: {
+                    "p1": "m1",
+                    "p2": "m2",
+                    "p3": "m3"
+                }
+            },
+            {
+                type: "matching",
+                q: "Jodohkan Kriteria Penilaian Proyek dengan Bobot Nilainya:",
+                left: [
+                    { id: "p1", text: "Planning & WBS" },
+                    { id: "p2", text: "Product Quality" },
+                    { id: "p3", text: "Teamwork & Progress" },
+                    { id: "p4", text: "Group Presentation" }
+                ],
+                right: [
+                    { id: "m2", text: "35%" },
+                    { id: "m1", text: "25%" },
+                    { id: "m4", text: "20% (Penyampaian & Penguasaan)" },
+                    { id: "m3", text: "20% (Partisipasi & Update Trello)" }
+                ],
+                correctMap: {
+                    "p1": "m1",
+                    "p2": "m2",
+                    "p3": "m3",
+                    "p4": "m4"
+                }
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = {};
+
+        // Matching interaction state
+        let selectedLeftId = null;
+        let currentMatchingPairs = {};
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-progress-badge').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const qData = questions[currentQuestionIndex];
+            
+            // Update Header & Progress Bar
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // Question Text
+            document.getElementById('question-text').innerText = qData.q;
+
+            // Elements Reset
+            const optionsContainer = document.getElementById('options-container');
+            const matchingContainer = document.getElementById('matching-container');
+            const matchingSubmitArea = document.getElementById('matching-submit-area');
+            const badge = document.getElementById('question-type-badge');
+
+            optionsContainer.innerHTML = '';
+            document.getElementById('matching-left').innerHTML = '';
+            document.getElementById('matching-right').innerHTML = '';
+            
+            selectedLeftId = null;
+            currentMatchingPairs = {};
+
+            if (qData.type === 'mcq' || qData.type === 'tf') {
+                optionsContainer.classList.remove('hidden');
+                matchingContainer.classList.add('hidden');
+                matchingSubmitArea.classList.add('hidden');
+
+                badge.innerText = qData.type === 'mcq' ? 'Pilihan Ganda' : 'Benar / Salah';
+                badge.className = qData.type === 'mcq' 
+                    ? "text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-700"
+                    : "text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded bg-amber-100 text-amber-800";
+
+                qData.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition duration-150 flex items-center justify-between group font-medium text-slate-700";
+                    btn.innerHTML = `
+                        <span>${opt}</span>
+                        <span class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-indigo-600 flex items-center justify-center text-xs text-transparent group-hover:text-indigo-600">✓</span>
+                    `;
+                    btn.onclick = () => handleMcqTfAnswer(idx);
+                    optionsContainer.appendChild(btn);
+                });
+
+            } else if (qData.type === 'matching') {
+                optionsContainer.classList.add('hidden');
+                matchingContainer.classList.remove('hidden');
+                matchingSubmitArea.classList.remove('hidden');
+
+                badge.innerText = 'Mencocokkan Pasangan';
+                badge.className = "text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800";
+
+                renderMatching(qData);
+            }
+        }
+
+        function handleMcqTfAnswer(selectedIndex) {
+            const qData = questions[currentQuestionIndex];
+            
+            if (selectedIndex === qData.answer) {
+                score++;
+            }
+
+            nextQuestion();
+        }
+
+        function renderMatching(qData) {
+            const leftCol = document.getElementById('matching-left');
+            const rightCol = document.getElementById('matching-right');
+
+            qData.left.forEach(item => {
+                const div = document.createElement('div');
+                div.id = `left-${item.id}`;
+                div.className = "p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:border-indigo-400 text-sm font-medium text-slate-700 transition flex justify-between items-center";
+                div.onclick = () => selectLeftMatching(item.id);
+                div.innerHTML = `<span id="text-left-${item.id}">${item.text}</span> <span id="tag-left-${item.id}" class="text-xs text-indigo-600 font-bold"></span>`;
+                leftCol.appendChild(div);
+            });
+
+            qData.right.forEach(item => {
+                const div = document.createElement('div');
+                div.id = `right-${item.id}`;
+                div.className = "p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:border-indigo-400 text-sm text-slate-600 transition flex justify-between items-center";
+                div.onclick = () => selectRightMatching(item.id);
+                div.innerHTML = `<span id="text-right-${item.id}">${item.text}</span> <span id="tag-right-${item.id}" class="text-xs text-indigo-600 font-bold"></span>`;
+                rightCol.appendChild(div);
+            });
+        }
+
+        function selectLeftMatching(id) {
+            // Clear previous left highlight
+            const qData = questions[currentQuestionIndex];
+            qData.left.forEach(l => {
+                const el = document.getElementById(`left-${l.id}`);
+                if (el) el.classList.remove('selected-match');
+            });
+
+            selectedLeftId = id;
+            document.getElementById(`left-${id}`).classList.add('selected-match');
+        }
+
+        function selectRightMatching(rightId) {
+            if (!selectedLeftId) return;
+
+            // Check if rightId is already paired, remove old pair
+            Object.keys(currentMatchingPairs).forEach(lId => {
+                if (currentMatchingPairs[lId] === rightId) {
+                    delete currentMatchingPairs[lId];
+                    document.getElementById(`tag-left-${lId}`).innerText = '';
+                }
+            });
+
+            // Set new pair
+            currentMatchingPairs[selectedLeftId] = rightId;
+
+            // Clear left selection highlight
+            document.getElementById(`left-${selectedLeftId}`).classList.remove('selected-match');
+
+            // Update UI Badges
+            updateMatchingUIBadges();
+
+            selectedLeftId = null;
+
+            // Check if all left items paired
+            const qData = questions[currentQuestionIndex];
+            const submitBtn = document.getElementById('matching-submit-btn');
+            
+            if (Object.keys(currentMatchingPairs).length === qData.left.length) {
+                submitBtn.disabled = false;
+                submitBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow cursor-pointer transition";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "bg-slate-300 text-slate-500 font-semibold px-6 py-2 rounded-lg cursor-not-allowed transition";
+            }
+        }
+
+        function updateMatchingUIBadges() {
+            const qData = questions[currentQuestionIndex];
+            
+            // Reset tags
+            qData.left.forEach(l => {
+                document.getElementById(`tag-left-${l.id}`).innerText = '';
+            });
+            qData.right.forEach(r => {
+                document.getElementById(`tag-right-${r.id}`).innerText = '';
+            });
+
+            // Apply tags
+            let pairIndex = 1;
+            Object.keys(currentMatchingPairs).forEach(lId => {
+                const rId = currentMatchingPairs[lId];
+                document.getElementById(`tag-left-${lId}`).innerText = `[Pasangan ${pairIndex}]`;
+                document.getElementById(`tag-right-${rId}`).innerText = `[Pasangan ${pairIndex}]`;
+                pairIndex++;
+            });
+        }
+
+        function submitMatchingAnswer() {
+            const qData = questions[currentQuestionIndex];
+            let isAllCorrect = true;
+
+            Object.keys(qData.correctMap).forEach(lId => {
+                if (currentMatchingPairs[lId] !== qData.correctMap[lId]) {
+                    isAllCorrect = false;
+                }
+            });
+
+            if (isAllCorrect) {
+                score++;
+            }
+
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-progress-badge').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const totalScore100 = Math.round((score / questions.length) * 100);
+
+            document.getElementById('total-correct').innerText = `${score} / ${questions.length}`;
+            document.getElementById('final-score-val').innerText = totalScore100;
+            document.getElementById('final-score-100').innerText = totalScore100;
+
+            const scoreBadge = document.getElementById('score-badge-color');
+            if (totalScore100 >= 80) {
+                scoreBadge.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-emerald-500 bg-emerald-50 text-emerald-600 text-3xl font-extrabold";
+            } else if (totalScore100 >= 60) {
+                scoreBadge.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-amber-500 bg-amber-50 text-amber-600 text-3xl font-extrabold";
+            } else {
+                scoreBadge.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-rose-500 bg-rose-50 text-rose-600 text-3xl font-extrabold";
+            }
+        }
+    </script>
+</body>
+</html>
+```eof
+
+### Rincian Fitur Aplikasi Kuis:
+1. **Struktur 40 Soal Terintegrasi (Materi Slide):**
+   - **30 Soal Pilihan Ganda (MCQ):** Menguji pemahaman teori dasar proyek vs operasi, WBS, Gantt Chart, Kanban/Trello, Triple Constraints, Mitigasi Risiko, dan Rubrik Penilaian Proyek.
+   - **5 Soal Benar/Salah (True/False):** Menguji ketelitian konsep mendasar secara cepat.
+   - **5 Soal Mencocokkan Pasangan (Matching):** Mencocokkan istilah peran tim, alur siklus hidup proyek, elemen batasan triple constraint, kolom Trello, dan bobot rubrik nilai.
+2. **Anti-Kecurangan & Tanpa Pengulangan:**
+   - Jawaban langsung tersimpan dan otomatis berlanjut begitu diklik.
+   - Tidak ada tombol navigasi kembali/undo ke nomor sebelumnya.
+3. **Rekap Hasil & Nilai Akhir:**
+   - Menghitung total jawaban benar dari 40 soal.
+   - Mengonversi nilai secara otomatis ke **Skala 100**.
+
+### Cara Mengirimkan Link ke Siswa:
+Anda dapat menyimpan/mengunggah file `quiz.html` ini ke layanan hosting gratis seperti **GitHub Pages**, **Netlify**, atau **Vercel** agar mendapatkan URL/Link aktif yang siap dibagikan langsung kepada para siswa.
